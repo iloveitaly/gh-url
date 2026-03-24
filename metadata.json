@@ -1,11 +1,11 @@
 {
-  "name": "gh-clean-artifacts",
-  "description": "Prune GitHub Actions artifacts by age and total size to manage storage costs.",
-  "homepage": "https://github.com/iloveitaly/gh-clean-artifacts",
+  "name": "gh-url",
+  "description": "Generate a GitHub URL for any git ref — branch, tag, or commit.",
+  "homepage": "https://github.com/iloveitaly/gh-url",
   "keywords": [
     "github",
-    "artifacts",
-    "cleanup",
-    "devops"
+    "git",
+    "url",
+    "devtools"
   ]
 }

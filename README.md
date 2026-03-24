@@ -1,54 +1,57 @@
-# AI Pull Request Generator (`gh ai-pr`)
+# GitHub URL Generator (`gh url`)
 
-Generating pull request descriptions shouldn't be a manual chore. This extension analyzes your branch's Git history—including commit titles and extended bodies—and combines them with your project's PR template to generate a perfectly formatted prompt for an LLM.
+Generate a GitHub URL for any git ref — branch, tag, or commit — directly from your terminal.
 
 ## Installation
 
-Install it as a GitHub CLI extension to use it across all your local repositories.
-
 ```bash
-gh extension install <your-username>/gh-ai-pr
+gh extension install <your-username>/gh-url
 ```
 
 For local development:
 
 ```bash
-# Clone the repo
-git clone https://github.com/<your-username>/gh-ai-pr
-cd gh-ai-pr
-
-# Install locally
+git clone https://github.com/<your-username>/gh-url
+cd gh-url
 gh extension install .
 ```
 
 ## Usage
 
-Simply run the command from any branch in any local repository:
-
 ```bash
-gh ai-pr
+gh url [ref]
 ```
 
-The script will:
-1. Identify your base branch (e.g., `main` or `master`).
-2. Gather all commits on your current branch that aren't in the base branch.
-3. Locate your `PULL_REQUEST_TEMPLATE.md` (if it exists).
-4. Output a comprehensive prompt you can paste into your favorite LLM (ChatGPT, Claude, Gemini, etc.) to generate your PR description.
+`ref` can be a branch name, tag, or commit SHA. Defaults to `HEAD` if omitted.
 
-## Features
+### Examples
 
-*   **Deep History Analysis**: Pulls not just the commit titles, but the full extended bodies of every commit on the branch.
-*   **Template Aware**: Automatically finds and includes your project's `PULL_REQUEST_TEMPLATE.md` from `.github/` or the root directory.
-*   **Zero Configuration**: Automatically detects the default branch and your current branch context.
-*   **Pathlib Powered**: Modern, robust file and path handling using Python's `pathlib`.
-*   **Portable**: Works as a native `gh` extension across your entire machine.
+```bash
+# Current HEAD (outputs a commit URL)
+gh url
 
-## How it works
+# A branch
+gh url main
 
-The extension follows a robust detection logic:
-1. **Base Branch Discovery**: It tries to find the default branch via `gh repo view`, falls back to `origin/HEAD`, and finally checks for local `main` or `master` branches.
-2. **Commit Extraction**: It uses `git log` to extract everything between the base branch and your current HEAD.
-3. **Template Search**: It scans common locations including `.github/PULL_REQUEST_TEMPLATE/` directories for a matching markdown template.
-4. **Prompt Generation**: It assembles these pieces into a structured prompt designed to give an LLM the best possible context for writing your PR.
+# A tag
+gh url v1.2.3
+
+# A specific commit
+gh url abc1234
+```
+
+## Output
+
+| Ref type | URL format |
+|----------|-----------|
+| Branch   | `https://github.com/owner/repo/tree/<branch>` |
+| Tag      | `https://github.com/owner/repo/releases/tag/<tag>` |
+| Commit   | `https://github.com/owner/repo/commit/<sha>` |
+
+## Related Projects
+
+- [gh-pr-url](https://github.com/pierskarsenbarg/gh-pr-url) — generate a URL for a pull request
+- [gh-repo-url](https://github.com/pierskarsenbarg/gh-repo-url) — generate a URL for a repository
+- [gh-compare](https://github.com/jaandrle/gh-compare) — generate a comparison URL between two refs
 
 ## [MIT License](LICENSE.md)
