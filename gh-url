@@ -66,7 +66,11 @@ def main():
     is_branch = run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{ref}"], silent=True) is not None
     is_tag = run(["git", "show-ref", "--verify", "--quiet", f"refs/tags/{ref}"], silent=True) is not None
 
-    if is_branch:
+    # When no ref was given and we're on a branch, prefer the PR URL if one exists
+    if not args and is_branch:
+        pr_url = run(["gh", "pr", "view", "--json", "url", "--jq", ".url"], silent=True)
+        url = pr_url if pr_url else f"{base_url}/tree/{ref}"
+    elif is_branch:
         url = f"{base_url}/tree/{ref}"
     elif is_tag:
         url = f"{base_url}/releases/tag/{ref}"
