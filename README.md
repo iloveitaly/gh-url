@@ -5,13 +5,13 @@
 ## Installation
 
 ```bash
-gh extension install <your-username>/gh-url
+gh extension install iloveitaly/gh-url
 ```
 
 For local development:
 
 ```bash
-git clone https://github.com/<your-username>/gh-url
+git clone https://github.com/iloveitaly/gh-url
 cd gh-url
 gh extension install .
 ```
