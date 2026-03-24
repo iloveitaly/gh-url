@@ -1,6 +1,6 @@
-# GitHub URL Generator (`gh url`)
+# Generate a GitHub URL for any git ref
 
-Generate a GitHub URL for any git ref — branch, tag, or commit — directly from your terminal.
+`gh url` takes a branch, tag, or commit ref and outputs the corresponding GitHub URL. It copies the result to your clipboard by default.
 
 ## Installation
 
@@ -19,34 +19,28 @@ gh extension install .
 ## Usage
 
 ```bash
-gh url [ref]
+gh url [ref] [--no-clip] [--open]
 ```
 
-`ref` can be a branch name, tag, or commit SHA. Defaults to `HEAD` if omitted.
-
-### Examples
+`ref` can be a branch, tag, or commit SHA. Defaults to `HEAD`.
 
 ```bash
-# Current HEAD (outputs a commit URL)
-gh url
-
-# A branch
-gh url main
-
-# A tag
-gh url v1.2.3
-
-# A specific commit
-gh url abc1234
+gh url          # current HEAD
+gh url main     # branch
+gh url v1.2.3   # tag
+gh url abc1234  # commit
 ```
 
-## Output
+## Features
 
-| Ref type | URL format |
-|----------|-----------|
-| Branch   | `https://github.com/owner/repo/tree/<branch>` |
-| Tag      | `https://github.com/owner/repo/releases/tag/<tag>` |
-| Commit   | `https://github.com/owner/repo/commit/<sha>` |
+- Outputs the appropriate URL based on ref type:
+  - Branch → `.../tree/<branch>`
+  - Tag → `.../releases/tag/<tag>`
+  - Commit → `.../commit/<sha>`
+- Copies the URL to the clipboard automatically (macOS and Linux)
+- `--no-clip` to skip clipboard copy
+- `--open` to open the URL in your browser
+- Handles both SSH and HTTPS remote URLs
 
 ## Related Projects
 
