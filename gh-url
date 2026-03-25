@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 import shutil
 import subprocess
 import sys
@@ -36,48 +37,71 @@ def parse_remote_url(remote_url):
     return None
 
 
+def repo_url():
+    url = run(["gh", "repo", "view", "--json", "url", "--jq", ".url"])
+    if not url:
+        err("could not determine repo URL")
+        sys.exit(1)
+    return url
+
+
 def main():
     no_clip = "--no-clip" in sys.argv
     open_browser = "--open" in sys.argv
-    args = [a for a in sys.argv[1:] if a not in ("--no-clip", "--open")]
-    ref = args[0] if args else "HEAD"
+    repo_flag = "--repo" in sys.argv
+    json_flag = "--json" in sys.argv
+    args = [a for a in sys.argv[1:] if a not in ("--no-clip", "--open", "--repo", "--json")]
 
-    sha = run(["git", "rev-parse", "--verify", ref])
-    if not sha:
-        err(f"invalid ref: {ref}")
-        sys.exit(1)
-
-    remote_url = run(["git", "config", "--get", "remote.origin.url"])
-    if not remote_url:
-        err("could not determine remote.origin.url")
-        sys.exit(1)
-
-    host_and_path = parse_remote_url(remote_url)
-    if not host_and_path:
-        err(f"unrecognized remote URL format: {remote_url}")
-        sys.exit(1)
-
-    # Split into host and repo path (e.g. github.com/owner/repo)
-    parts = host_and_path.split("/", 1)
-    host = parts[0]
-    repo_path = parts[1] if len(parts) > 1 else ""
-    base_url = f"https://{host}/{repo_path}"
-
-    is_branch = run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{ref}"], silent=True) is not None
-    is_tag = run(["git", "show-ref", "--verify", "--quiet", f"refs/tags/{ref}"], silent=True) is not None
-
-    # When no ref was given and we're on a branch, prefer the PR URL if one exists
-    if not args and is_branch:
-        pr_url = run(["gh", "pr", "view", "--json", "url", "--jq", ".url"], silent=True)
-        url = pr_url if pr_url else f"{base_url}/tree/{ref}"
-    elif is_branch:
-        url = f"{base_url}/tree/{ref}"
-    elif is_tag:
-        url = f"{base_url}/releases/tag/{ref}"
+    if repo_flag:
+        url = repo_url()
     else:
-        url = f"{base_url}/commit/{sha}"
+        ref = args[0] if args else "HEAD"
 
-    print(url)
+        sha = run(["git", "rev-parse", "--verify", ref])
+        if not sha:
+            err(f"invalid ref: {ref}")
+            sys.exit(1)
+
+        remote_url = run(["git", "config", "--get", "remote.origin.url"])
+        if not remote_url:
+            err("could not determine remote.origin.url")
+            sys.exit(1)
+
+        host_and_path = parse_remote_url(remote_url)
+        if not host_and_path:
+            err(f"unrecognized remote URL format: {remote_url}")
+            sys.exit(1)
+
+        # Split into host and repo path (e.g. github.com/owner/repo)
+        parts = host_and_path.split("/", 1)
+        host = parts[0]
+        repo_path = parts[1] if len(parts) > 1 else ""
+        base_url = f"https://{host}/{repo_path}"
+
+        is_branch = run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{ref}"], silent=True) is not None
+        is_tag = run(["git", "show-ref", "--verify", "--quiet", f"refs/tags/{ref}"], silent=True) is not None
+
+        # When no ref was given and we're on a branch, prefer the PR URL if one exists
+        if not args and is_branch:
+            pr_url = run(["gh", "pr", "view", "--json", "url", "--jq", ".url"], silent=True)
+            url = pr_url if pr_url else f"{base_url}/tree/{ref}"
+            ref_type = "pr" if pr_url else "branch"
+        elif is_branch:
+            url = f"{base_url}/tree/{ref}"
+            ref_type = "branch"
+        elif is_tag:
+            url = f"{base_url}/releases/tag/{ref}"
+            ref_type = "tag"
+        else:
+            url = f"{base_url}/commit/{sha}"
+            ref_type = "commit"
+
+    if json_flag and not repo_flag:
+        print(json.dumps({"ref": ref, "type": ref_type, "sha": sha, "url": url}, indent=2))
+    elif json_flag and repo_flag:
+        print(json.dumps({"url": url}, indent=2))
+    else:
+        print(url)
     if not no_clip:
         copy_to_clipboard(url)
     if open_browser:
