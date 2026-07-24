@@ -45,6 +45,32 @@ def repo_url():
     return url
 
 
+def current_branch():
+    branch = run(["git", "branch", "--show-current"])
+    if not branch:
+        err("not on a branch (detached HEAD?)")
+        sys.exit(1)
+    return branch
+
+
+def base_repo_url():
+    remote_url = run(["git", "config", "--get", "remote.origin.url"])
+    if not remote_url:
+        err("could not determine remote.origin.url")
+        sys.exit(1)
+
+    host_and_path = parse_remote_url(remote_url)
+    if not host_and_path:
+        err(f"unrecognized remote URL format: {remote_url}")
+        sys.exit(1)
+
+    # Split into host and repo path (e.g. github.com/owner/repo)
+    parts = host_and_path.split("/", 1)
+    host = parts[0]
+    repo_path = parts[1] if len(parts) > 1 else ""
+    return f"https://{host}/{repo_path}"
+
+
 def main():
     no_clip = "--no-clip" in sys.argv
     open_browser = "--open" in sys.argv
@@ -54,6 +80,12 @@ def main():
 
     if repo_flag:
         url = repo_url()
+    elif args and args[0] == "branch":
+        # Special keyword: current branch tree URL (not PR), for non-default branch workflows
+        ref = current_branch()
+        sha = run(["git", "rev-parse", "--verify", ref])
+        url = f"{base_repo_url()}/tree/{ref}"
+        ref_type = "branch"
     else:
         ref = args[0] if args else "HEAD"
 
@@ -62,21 +94,7 @@ def main():
             err(f"invalid ref: {ref}")
             sys.exit(1)
 
-        remote_url = run(["git", "config", "--get", "remote.origin.url"])
-        if not remote_url:
-            err("could not determine remote.origin.url")
-            sys.exit(1)
-
-        host_and_path = parse_remote_url(remote_url)
-        if not host_and_path:
-            err(f"unrecognized remote URL format: {remote_url}")
-            sys.exit(1)
-
-        # Split into host and repo path (e.g. github.com/owner/repo)
-        parts = host_and_path.split("/", 1)
-        host = parts[0]
-        repo_path = parts[1] if len(parts) > 1 else ""
-        base_url = f"https://{host}/{repo_path}"
+        base_url = base_repo_url()
 
         is_branch = run(["git", "show-ref", "--verify", "--quiet", f"refs/heads/{ref}"], silent=True) is not None
         is_tag = run(["git", "show-ref", "--verify", "--quiet", f"refs/tags/{ref}"], silent=True) is not None

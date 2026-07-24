@@ -25,8 +25,9 @@ gh url [ref] [--no-clip] [--open]
 `ref` can be a branch, tag, or commit SHA. Defaults to `HEAD`.
 
 ```bash
-gh url          # current HEAD
-gh url main     # branch
+gh url          # current HEAD (PR URL if one exists)
+gh url branch   # current branch tree URL
+gh url main     # named branch
 gh url v1.2.3   # tag
 gh url abc1234  # commit
 ```
@@ -37,6 +38,7 @@ gh url abc1234  # commit
   - Branch → `.../tree/<branch>`
   - Tag → `.../releases/tag/<tag>`
   - Commit → `.../commit/<sha>`
+- `branch` keyword resolves to the current branch's tree URL (skips PR preference)
 - Copies the URL to the clipboard automatically (macOS and Linux)
 - `--no-clip` to skip clipboard copy
 - `--open` to open the URL in your browser
