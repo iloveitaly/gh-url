@@ -22,19 +22,22 @@ gh extension install .
 gh url [ref] [--no-clip] [--open]
 ```
 
-`ref` can be a branch, tag, or commit SHA. Defaults to `HEAD`.
+`ref` can be a file/directory path, branch, tag, or commit SHA. Defaults to `HEAD`.
 
 ```bash
-gh url          # current HEAD (PR URL if one exists)
-gh url branch   # current branch tree URL
-gh url main     # named branch
-gh url v1.2.3   # tag
-gh url abc1234  # commit
+gh url               # current HEAD (PR URL if one exists)
+gh url branch        # current branch tree URL
+gh url main          # named branch
+gh url v1.2.3        # tag
+gh url abc1234       # commit
+gh url path/to/file  # file or directory on current branch
 ```
 
 ## Features
 
 - Outputs the appropriate URL based on ref type:
+  - File → `.../blob/<branch>/<path>`
+  - Directory → `.../tree/<branch>/<path>`
   - Branch → `.../tree/<branch>`
   - Tag → `.../releases/tag/<tag>`
   - Commit → `.../commit/<sha>`

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+from pathlib import Path
 import shutil
 import subprocess
 import sys
@@ -86,6 +87,18 @@ def main():
         sha = run(["git", "rev-parse", "--verify", ref])
         url = f"{base_repo_url()}/tree/{ref}"
         ref_type = "branch"
+    elif args and Path(args[0]).exists():
+        path = Path(args[0]).resolve()
+        toplevel = run(["git", "rev-parse", "--show-toplevel"])
+        if not toplevel:
+            sys.exit(1)
+
+        rel_path = path.relative_to(Path(toplevel).resolve()).as_posix()
+        sha = run(["git", "rev-parse", "HEAD"])
+        ref = run(["git", "branch", "--show-current"], silent=True) or sha
+        kind = "tree" if path.is_dir() else "blob"
+        url = f"{base_repo_url()}/tree/{ref}" if rel_path == "." else f"{base_repo_url()}/{kind}/{ref}/{rel_path}"
+        ref_type = "dir" if path.is_dir() else "file"
     else:
         ref = args[0] if args else "HEAD"
 
